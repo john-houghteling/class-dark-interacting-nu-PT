@@ -120,6 +120,10 @@ struct background
   char * ncdm_psd_files;                /**< list of filenames for tabulated p-s-d */
   /* end of parameters for tabulated ncdm p-s-d */
 
+  // DC: HERE! 
+  double log10_G_eff_nu; /**< Log10 of the effective coupling constant for interaction of neutrinos*/
+  double G_eff_nu; /**< Effective coupling constant for interaction of neutrinos*/
+  double interacting_nu; /**< Define whether neutrinos are interacting or not*/
   //@}
 
   /** @name - related parameters */
@@ -164,6 +168,7 @@ struct background
   int index_bg_rho_fld;       /**< fluid density */
   int index_bg_w_fld;         /**< fluid equation of state */
   int index_bg_rho_ur;        /**< relativistic neutrinos/relics density */
+  int index_bg_Gamma_ur;      /**< Interaction rate of relativistic neutrinos/relics */
   int index_bg_rho_dcdm;      /**< dcdm density */
   int index_bg_rho_dr;        /**< dr density */
 
@@ -178,6 +183,7 @@ struct background
   int index_bg_rho_ncdm1;     /**< density of first ncdm species (others contiguous) */
   int index_bg_p_ncdm1;       /**< pressure of first ncdm species (others contiguous) */
   int index_bg_pseudo_p_ncdm1;/**< another statistical momentum useful in ncdma approximation */
+  int index_bg_Gamma_ncdm1;   /**< Interaction rate of first ncdm species (others contiguous) */
 
   int index_bg_Omega_r;       /**< relativistic density fraction (\f$ \Omega_{\gamma} + \Omega_{\nu r} \f$) */
 

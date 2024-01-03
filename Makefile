@@ -34,8 +34,7 @@ PYTHON ?= python
 
 # your optimization flag
 OPTFLAG = -O4 -ffast-math
-#OPTFLAG = -O4 -ffast-math -lgsl -lgslcblas -lfftw3 -lm #-march=native
-#OPTFLAG = -fast
+#OPTFLAG = -O4 -ffast-math -lgsl -lgslcblas -lfftw3 -lm #-march=native #OPTFLAG = -fast
 
 # your openmp flag (comment for compiling without openmp)
 OMPFLAG   = -fopenmp
@@ -51,7 +50,7 @@ LDFLAG = -g -fPIC
 HYREC = hyrec
 
 #put your path to libopenblas.a here
-OPENBLAS = /Users/gcabass/anaconda3/envs/openblas_test/lib/libopenblas.dylib
+OPENBLAS = /opt/homebrew/opt/openblas/lib/libopenblas.dylib
 
 ########################################################
 ###### IN PRINCIPLE THE REST SHOULD BE LEFT UNCHANGED ##

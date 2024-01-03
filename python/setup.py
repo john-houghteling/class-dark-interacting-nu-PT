@@ -36,10 +36,10 @@ setup(
     url='http://www.class-code.net',
     cmdclass={'build_ext': build_ext},
     ext_modules=[Extension("classy", ["classy.pyx"],
-                           include_dirs=[nm.get_include(), "../include","/Users/gcabass/anaconda3/envs/openblas_test/include"],
+                           include_dirs=[nm.get_include(), "../include","/opt/homebrew/opt/openblas/include"],
                            libraries=liblist,
                            library_dirs=["../", GCCPATH],
-                           extra_link_args=['/Users/gcabass/anaconda3/envs/openblas_test/lib/libopenblas.dylib','-lgomp'],
+                           extra_link_args=['/opt/homebrew/opt/openblas/lib/libopenblas.dylib','-lgomp'],
                            )],
     #data_files=[('bbn', ['../bbn/sBBN.dat'])]
 )

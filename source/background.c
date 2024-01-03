@@ -382,6 +382,16 @@ int background_functions(
       /* (rho_ncdm1 - 3 p_ncdm1) is the "non-relativistic" contribution
          to rho_ncdm1 */
       rho_m += rho_ncdm - 3.* p_ncdm;
+
+      // DC: HERE!
+      /* Interaction rate for massive neutrinos */
+      if(pba->interacting_nu!=0.){
+        // G_eff_nu in 1/MeV^2
+        // _Mpc_over_m*_eV_/(_h_P_*_c_) convert eV/Mpc
+        // index_bg_Gamma_ncdm1 in 1/Mpc to make easy the comparison with H
+        pvecback[pba->index_bg_Gamma_ncdm1+n_ncdm] = a_rel*pow(pba->G_eff_nu*1e-12,2)*pow(pba->T_cmb*pba->T_ncdm[n_ncdm]*_k_B_/_eV_/a_rel,5)*_Mpc_over_m_*_eV_/(_h_P_*_c_);
+        // printf("%e\n",pvecback[pba->index_bg_Gamma_ncdm1+n_ncdm]*pow(a_rel,4));
+      }
     }
   }
 
@@ -416,6 +426,12 @@ int background_functions(
     rho_tot += pvecback[pba->index_bg_rho_ur];
     p_tot += (1./3.) * pvecback[pba->index_bg_rho_ur];
     rho_r += pvecback[pba->index_bg_rho_ur];
+
+    // DC: HERE!
+    /* Interaction rate for massless neutrinos */
+    if(pba->interacting_nu!=0.){
+      pvecback[pba->index_bg_Gamma_ur] = a_rel*pow(pba->G_eff_nu*1e-12,2)*pow(pba->T_cmb*pow(4./11.,1./3.)*_k_B_/_eV_/a_rel,5)*_Mpc_over_m_*_eV_/(_h_P_*_c_);
+    }
   }
 
   /** - compute expansion rate H from Friedmann equation: this is the
@@ -825,6 +841,10 @@ int background_indices(
   class_define_index(pba->index_bg_rho_ncdm1,pba->has_ncdm,index_bg,pba->N_ncdm);
   class_define_index(pba->index_bg_p_ncdm1,pba->has_ncdm,index_bg,pba->N_ncdm);
   class_define_index(pba->index_bg_pseudo_p_ncdm1,pba->has_ncdm,index_bg,pba->N_ncdm);
+  // DC: HERE!
+  if(pba->interacting_nu!=0.){
+    class_define_index(pba->index_bg_Gamma_ncdm1,pba->has_ncdm,index_bg,pba->N_ncdm);
+  }
 
   /* - index for dcdm */
   class_define_index(pba->index_bg_rho_dcdm,pba->has_dcdm,index_bg,1);
@@ -850,6 +870,10 @@ int background_indices(
 
   /* - index for ultra-relativistic neutrinos/species */
   class_define_index(pba->index_bg_rho_ur,pba->has_ur,index_bg,1);
+  // DC: HERE!
+  if(pba->interacting_nu!=0.){
+    class_define_index(pba->index_bg_Gamma_ur,pba->has_ur,index_bg,1);
+  }
 
   /* - index for Omega_r (relativistic density fraction) */
   class_define_index(pba->index_bg_Omega_r,_TRUE_,index_bg,1);
@@ -1756,6 +1780,9 @@ int background_solve(
 
   /** - done */
   if (pba->background_verbose > 0) {
+    if (pba->G_eff_nu !=0){
+      printf(" -> interacting neutrinos with G_eff_nu = %g\n",pba->G_eff_nu);
+    }
     printf(" -> age = %f Gyr\n",pba->age);
     printf(" -> conformal age = %f Mpc\n",pba->conformal_age);
   }
@@ -2050,6 +2077,11 @@ int background_output_titles(struct background * pba,
   class_store_columntitle(titles,"gr.fac. D",_TRUE_);
   class_store_columntitle(titles,"gr.fac. f",_TRUE_);
 
+  if (pba->interacting_nu!=0){
+    class_store_columntitle(titles,"Gamma_ur",pba->has_ur);
+    class_store_columntitle(titles,"Gamma_ncdm",pba->has_ncdm);
+  }
+
   return _SUCCESS_;
 }
 
@@ -2101,6 +2133,12 @@ int background_output_data(
 
     class_store_double(dataptr,pvecback[pba->index_bg_D],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_f],_TRUE_,storeidx);
+
+    if (pba->interacting_nu!=0){
+      class_store_double(dataptr,pvecback[pba->index_bg_Gamma_ur],pba->has_ur,storeidx);
+      class_store_double(dataptr,pvecback[pba->index_bg_Gamma_ncdm1],pba->has_ncdm,storeidx);
+    }
+
   }
 
   return _SUCCESS_;

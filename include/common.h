@@ -61,6 +61,8 @@ typedef char FileName[_FILENAMESIZE_];
 
 #define _SQRT_PI_ 1.77245385090551602729816748334e0 /**< square root of pi. */
 
+#define _E_ 2.718281828459045235360287471352662497757247093699959574966967627724076630353547594571382178525166427427466391932003059921817413596629043572900334295260595630738132328627943490763233829880753195251019011573834187930702154089149934884167509244761460668082264800168477411853742345442437107539077744992069551702761838606261331384583000752044933826560297606737113200709328709127443747047230696977209310141692836819025515108657463772111252389784425056953696 /**< exponential of one */
+
 #define _MAX_IT_ 10000/**< default maximum number of iterations in conditional loops (to avoid infinite loops) */
 
 #define _QUADRATURE_MAX_ 250 /**< maximum allowed number of abssices in quadrature integral estimation */
@@ -447,6 +449,12 @@ struct precision
 /* @endcond */
   /* - for recombination */
 
+  // DC: HERE!
+  FileName interacting_C_ell_file_new;
+  FileName interacting_C_ell_file_syn;
+  // FileName interacting_C_ell_file;
+  FileName interacting_alpha_ell_file;
+
   /* initial and final redshifts in recfast */
 
   double recfast_z_initial;      /**< initial redshift in recfast */
@@ -550,11 +558,39 @@ struct precision
 
   /**
    * when to switch off tight-coupling approximation:
-   * second condition: \f$ \tau_c/\tau_k \equiv k \tau_c \f$ <
+   * second condition: \f$ \tau_c/\tau_k \equiv k \tau_c \f$ > 
    * tight_coupling_trigger_tau_c_over_tau_k.
    * Decrease this value to switch off earlier in time.
    */
   double tight_coupling_trigger_tau_c_over_tau_k;
+
+  // DC: HERE!
+  double start_small_k_at_tau_nu_over_tau_h; /**< largest wavelengths start being sampled when universe is sufficiently opaque. This is quantified in terms of the ratio of thermo to hubble time scales, \f$ \tau_c/\tau_H \f$. Start when start_largek_at_tau_c_over_tau_h equals this ratio. Decrease this value to start integrating the wavenumbers earlier in time. */
+
+  /**
+   * when to switch off tight-coupling approximation for interacting neutrinos:
+   * first condition: \f$ \tau_nu/\tau_H \f$ > tight_coupling_trigger_tau_nu_over_tau_h.
+   * Decrease this value to switch off earlier in time. 
+   */
+  double tight_coupling_trigger_tau_nu_over_tau_h;
+
+  /**
+   * when to switch off tight-coupling approximation for interacting neutrinos:
+   * second condition: \f$ \tau_nu/\tau_k \equiv k \tau_c \f$ > 
+   * tight_coupling_trigger_tau_nu_over_tau_k.
+   * Decrease this value to switch off earlier in time.
+   */
+  double tight_coupling_trigger_tau_nu_over_tau_k;
+
+  /**
+   * when to switch off full hierarchy for interacting neutrinos:
+   * second condition: \f$ \tau_nu/\tau_k \equiv k \tau_c \f$ > 
+   * full_hierarchy_trigger_tau_nu_over_tau_k.
+   * Decrease this value to switch off earlier in time.
+   */
+  double full_hierarchy_trigger_tau_nu_over_tau_k;
+
+  int forcing_linear; /** For the code to compute the linear power spectrum scales greater than k = 100 h/Mpc. Shouldn't be used if we aim for the no linear correction provided by PT */
 
   double start_sources_at_tau_c_over_tau_h; /**< sources start being sampled when universe is sufficiently opaque. This is quantified in terms of the ratio of thermo to hubble time scales, \f$ \tau_c/\tau_H \f$. Start when start_sources_at_tau_c_over_tau_h equals this ratio. Decrease this value to start sampling the sources earlier in time. */
 

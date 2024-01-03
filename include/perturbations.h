@@ -13,11 +13,13 @@
 
 #define _set_source_(index) ppt->sources[index_md][index_ic * ppt->tp_size[index_md] + index][index_tau * ppt->k_size[index_md] + index_k]
 
+// DC: new flag for interaction neutrinos --- nu_flags
 /**
  * flags for various approximation schemes
  * (tca = tight-coupling approximation,
  *  rsa = radiation streaming approximation,
- *  ufa = massless neutrinos / ultra-relativistic relics fluid approximation)
+ *  ufa = massless neutrinos / ultra-relativistic relics fluid approximation
+ *  nir = neutrinos interaction regime approximations: TCA, full, UFA)
  *
  * CAUTION: must be listed below in chronological order, and cannot be
  * reversible. When integrating equations for a given mode, it is only
@@ -28,6 +30,8 @@
 
 enum tca_flags {tca_on, tca_off};
 enum rsa_flags {rsa_off, rsa_on};
+// DC: HERE! 
+enum nu_tca_flags {nu_tca_on, nu_tca_off};
 enum ufa_flags {ufa_off, ufa_on};
 enum ncdmfa_flags {ncdmfa_off, ncdmfa_on};
 
@@ -376,10 +380,24 @@ struct perturbs
   //@{
 
   short perturbations_verbose; /**< flag regulating the amount of information sent to standard output (none if set to zero) */
+  // DC: HERE!
+  short ufa_corrections; 
+  short ncdmfa_corrections; 
 
   ErrorMsg error_message; /**< zone for writing error messages */
 
   //@}
+
+  // DC: HERE!
+  int num_q_collision;
+  int * ell;
+  double * q_collision;
+  double * C_ell;
+  double * ddC_ell;
+
+  int * ell_2;
+  double * alpha_ell;
+
 
 };
 
@@ -524,6 +542,11 @@ struct perturb_workspace
   double S_fld;                /**< S quantity sourcing Gamma_prime evolution in PPF scheme (equivalent to eq. 15 in 0808.3125) */
   double Gamma_prime_fld;      /**< Gamma_prime in PPF scheme (equivalent to eq. 14 in 0808.3125) */
 
+  // DC: HERE!
+  double tca_shear_ur;    /**< ur in neutrino tight-coupling approximation */
+  // double * tca_shear_ncdm;  /**< ncdm in neutrino tight-coupling approximation */
+  double ** tca_psi2_ncdm1;  /**< ncdm in neutrino tight-coupling approximation */
+
   FILE * perturb_output_file; /**< filepointer to output file*/
   int index_ikout;            /**< index for output k value (when k_output_values is set) */
 
@@ -546,6 +569,8 @@ struct perturb_workspace
 
   int index_ap_tca; /**< index for tight-coupling approximation */
   int index_ap_rsa; /**< index for radiation streaming approximation */
+  // DC: HERE!
+  int index_ap_nu_tca; /**< interacting neutrinos approximation */
   int index_ap_ufa; /**< index for ur fluid approximation */
   int index_ap_ncdmfa; /**< index for ncdm fluid approximation */
   int ap_size;      /**< number of relevant approximations for a given mode */
@@ -644,6 +669,7 @@ extern "C" {
                              );
 
   int perturb_workspace_free(
+                             struct background * pba,
                              struct perturbs * ppt,
                              int index_md,
                              struct perturb_workspace * ppw
@@ -785,6 +811,18 @@ extern "C" {
                      ErrorMsg error_message
                      );
 
+  int perturb_ur_tca_shear(
+                                 double * y,
+                                 void * parameters_and_workspace,
+                                 ErrorMsg error_message
+                                 );
+
+  int perturb_ncdm_tca_shear(
+                                 double * y,
+                                 void * parameters_and_workspace,
+                                 ErrorMsg error_message
+                                 );
+
   int perturb_tca_slip_and_shear(
                                  double * y,
                                  void * parameters_and_workspace,
@@ -811,6 +849,15 @@ extern "C" {
 
   int perturb_prepare_output(struct background * pba,
                              struct perturbs * ppt);
+
+  int perturb_collision_C_ell(struct precision * ppr,
+                              struct background * pba,
+                              struct perturbs * ppt);
+
+  int perturb_collision_alpha_ell(struct precision * ppr,
+                                  struct perturbs * ppt);
+
+  int perturbations_collision_free(struct perturbs * ppt);
 
 #ifdef __cplusplus
 }

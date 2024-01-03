@@ -2146,7 +2146,13 @@ int input_read_parameters(
 
 /* Here I brutally force P_k_max_h/Mpc = 100. since only for this value the non-linear module is tailored */
 
-      ppt->k_max_for_pk=100.*pba->h;
+    class_read_int("forcing_linear",ppr->forcing_linear);
+    // printf("k_max_for_pk: %e\n",ppt->k_max_for_pk);
+    // printf("forcing_linear: %i\n",ppr->forcing_linear);
+    if (ppr->forcing_linear == 0){
+      ppt->k_max_for_pk=100.*pba->h;    
+    }
+    // printf("k_max_for_pk: %e\n",ppt->k_max_for_pk);
 
     class_call(parser_read_list_of_doubles(pfc,
                                            "z_pk",
@@ -2426,6 +2432,34 @@ int input_read_parameters(
     psp->z_max_pk = ppt->z_max_pk;
   }
   /* end of z_max section */
+
+  // DC: HERE!
+  // class_read_double("G_eff_nu",pba->G_eff_nu);
+  class_read_double("log10_G_eff_nu",pba->log10_G_eff_nu);
+
+  // DC: Minimum threshold for LCDM limit. Excessively low values could produce numerical issues.
+  if (pba->log10_G_eff_nu < -6.){
+    pba->G_eff_nu=0.;
+  }
+  else {
+    pba->G_eff_nu=pow(10.,pba->log10_G_eff_nu);
+  }
+
+  if (pba->G_eff_nu == 0.) {
+    pba->interacting_nu=0.;
+  }
+  else {
+    pba->interacting_nu=1.;
+    class_read_double("tight_coupling_trigger_tau_nu_over_tau_h",ppr->tight_coupling_trigger_tau_nu_over_tau_h);
+    class_read_double("tight_coupling_trigger_tau_nu_over_tau_k",ppr->tight_coupling_trigger_tau_nu_over_tau_k);
+    class_read_double("full_hierarchy_trigger_tau_nu_over_tau_k",ppr->full_hierarchy_trigger_tau_nu_over_tau_k);
+    class_read_double("start_small_k_at_tau_nu_over_tau_h",ppr->start_small_k_at_tau_nu_over_tau_h);
+    class_read_int("ufa_corrections",ppt->ufa_corrections);
+    class_read_int("ncdmfa_corrections",ppt->ncdmfa_corrections);
+    class_read_string("interacting_Cl_file_new",ppr->interacting_C_ell_file_new);
+    class_read_string("interacting_Cl_file_syn",ppr->interacting_C_ell_file_syn);
+    class_read_string("interacting_alphal_file",ppr->interacting_alpha_ell_file);
+  }
 
   class_read_string("root",pop->root);
 
@@ -3275,6 +3309,13 @@ int input_default_params(
 
   ppt->z_max_pk=0.;
 
+  // DC: HERE!
+  pba->log10_G_eff_nu=-12.;
+  pba->G_eff_nu=0.;
+  pba->interacting_nu=0.;
+  ppt->ufa_corrections = 1;
+  ppt->ncdmfa_corrections = 1;
+
   ppt->selection_num=1;
   ppt->selection=gaussian;
   ppt->selection_mean[0]=1.;
@@ -3416,7 +3457,7 @@ int input_default_params(
 
   pba->background_verbose = 0;
   pth->thermodynamics_verbose = 0;
-  ppt->perturbations_verbose = 0;
+  ppt->perturbations_verbose = 1;
   ptr->transfer_verbose = 0;
   ppm->primordial_verbose = 0;
   psp->spectra_verbose = 0;
@@ -3424,6 +3465,7 @@ int input_default_params(
   pnlpt->nonlinear_pt_verbose = 0;
   ple->lensing_verbose = 0;
   pop->output_verbose = 0;
+  
 
   return _SUCCESS_;
 
@@ -3465,6 +3507,16 @@ int input_default_precision ( struct precision * ppr ) {
   /* for bbn */
   sprintf(ppr->sBBN_file,__CLASSDIR__);
   strcat(ppr->sBBN_file,"/bbn/sBBN_2017.dat");
+
+  //DC: HERE!
+  sprintf(ppr->interacting_C_ell_file_syn,__CLASSDIR__);
+  strcat(ppr->interacting_C_ell_file_syn,"/neutrinos_collision_terms/Coll_integrals_5_qbins.dat");
+
+  sprintf(ppr->interacting_C_ell_file_new,__CLASSDIR__);
+  strcat(ppr->interacting_C_ell_file_new,"/neutrinos_collision_terms/Coll_integrals_11_qbins.dat");
+
+  sprintf(ppr->interacting_alpha_ell_file,__CLASSDIR__);
+  strcat(ppr->interacting_alpha_ell_file,"/neutrinos_collision_terms/Massless_alpha_l.dat");
 
   /* for recombination */
 
@@ -3542,6 +3594,13 @@ int input_default_precision ( struct precision * ppr ) {
   ppr->tight_coupling_trigger_tau_c_over_tau_k=0.01; /* decrease to switch off earlier in time */
   ppr->start_sources_at_tau_c_over_tau_h = 0.008; /* decrease to start earlier in time */
   ppr->tight_coupling_approximation=(int)compromise_CLASS;
+
+  // DC: HERE!
+  ppr->start_small_k_at_tau_nu_over_tau_h = 2.e-5;  /* decrease to start earlier in time */
+  ppr->tight_coupling_trigger_tau_nu_over_tau_h=0.001; /* decrease to switch off earlier in time */
+  ppr->tight_coupling_trigger_tau_nu_over_tau_k=0.001; /* decrease to switch off earlier in time */
+  ppr->full_hierarchy_trigger_tau_nu_over_tau_k=1.e4; /* decrease to switch on fuild approximation earlier in time */
+  ppr->forcing_linear=0;
 
   ppr->l_max_g=12;
   ppr->l_max_pol_g=10;

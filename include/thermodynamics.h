@@ -157,6 +157,7 @@ struct thermo
 
   //@{
 
+  // DC: HERE!
   int index_th_xe;            /**< ionization fraction \f$ x_e \f$ */
   int index_th_dkappa;        /**< Thomson scattering rate \f$ d \kappa / d \tau\f$ (units 1/Mpc) */
   int index_th_tau_d;         /**< Baryon drag optical depth */
@@ -206,6 +207,15 @@ struct thermo
   double ra_rec;  /**< conformal angular diameter distance to recombination */
   double da_rec;  /**< physical angular diameter distance to recombination */
   double rd_rec;  /**< comoving photon damping scale at recombination */
+
+  double z_star;  /**< redshift at which photon optical depth crosses one */
+  double tau_star;/**< confirmal time at which photon optical depth crosses one */
+  double rs_star; /**< comoving sound horizon at z_star */
+  double ds_star; /**< physical sound horizon at z_star */
+  double ra_star;  /**< conformal angular diameter distance to z_star */
+  double da_star;  /**< physical angular diameter distance to z_star */
+  double rd_star;  /**< comoving photon damping scale at z_star */
+  
   double z_d;     /**< baryon drag redshift */
   double tau_d;   /**< baryon drag time */
   double ds_d;    /**< physical sound horizon at baryon drag */

@@ -1,0 +1,13 @@
+.DS_Store
+README
+autosetup.py
+cclassy.pxd
+classy.pyx
+extract_errors.py
+interface_generator.py
+setup.py
+test_class.py
+classy.egg-info/PKG-INFO
+classy.egg-info/SOURCES.txt
+classy.egg-info/dependency_links.txt
+classy.egg-info/top_level.txt

@@ -1,72 +1,29 @@
-# CLASS-PT: nonlinear perturbation theory extension of the Boltzmann code CLASS
+# CLASS-PT with self-interacting neutrinos
 
-This is a modification of the CLASS code that computes the non-linear power spectra of dark matter and biased tracers in one-loop cosmological perturbation theory, for both Gaussian and non-Gaussian initial conditions.
- 
-CLASS-PT can be interfaced with the MCMC sampler [MontePython](https://github.com/brinckmann/montepython_public) using the (***new and improved***) custom-built likelihoods found [here](https://github.com/oliverphilcox/full_shape_likelihoods).
- 
-The code is compatible with both python2 and python3.
+## Description 
 
-# Getting started
+This is a modified version of the [CLASS-PT code](https://github.com/Michalychforever/CLASS-PT) that computes the cosmology for self-interacting neutrino models as presented in [arXiv:2309.03941](https://arxiv.org/abs/2309.03941). The novel interaction among neutrinos and its impact on cosmological phenomena is fully controlled by a single parameter: `log10_G_eff_nu`. Please note that this code should be solely using the synchronous gauge. For further details, see the following section. 
 
-Read [these instructions](https://github.com/Michalychforever/CLASS-PT/blob/master/instructions.pdf) for the installation details. See also this [troubleshooting](https://github.com/Michalychforever/CLASS-PT/blob/master/troubleshooting.rst) guide.
+## Detailed implementation
 
-The installation instuctions for CLASS can be found on the official code [webpage](https://github.com/lesgourg/class_public).
+We modified the Boltzmann equations in the perturbation module, `source/perturbations.c`, to account forself-interacting neutrinos as presented in [arXiv:2309.03941](https://arxiv.org/abs/2309.03941) and reference therein. Following [arXiv:1902.00534](https://arxiv.org/abs/1902.00534), we use precompute collision terms on a 5-point grid on the momentum space consistent with the grid used by the synchronous gauge perturbation solver. Such precompute terms can be found in the folder `neutrinos_collision_terms`. Although we also include an 11-point grid version that can be used to solve the cosmological perturbations in the Newtonian gauge, we highly discourage adopting such a gauge since the results are highly inaccurate. 
 
-Once you are all set, check out this [jupyter notebook](https://github.com/Michalychforever/CLASS-PT/blob/master/notebooks/nonlinear_pt.ipynb) for the examples of working sessions. Here's a simple example of computing the galaxy power spectrum multipoles with CLASS-PT:
+To avoid the stiffness of the Boltzmann equations when the mean free path of self-interacting neutrinos is much smaller than the Hubble horizon, we use tight-coupling approximation (TCA). We implemented such an approximation by exploiting the switch structure of CLASS. In particular, we added two new switches to control the TCA for self-interacting neutrinos: `nu_tca_on` and `nu_tca_off`. The boundaries of the TCA regime are delimited by the values of `start_small_k_at_tau_nu_over_tau_h`, `tight_coupling_trigger_tau_nu_over_tau_h`, and `tight_coupling_trigger_tau_nu_over_tau_k`. To avoid an overlap between the TCA and ultra-relativistic fluid approximation (UFA) for neutrinos, we delay the start of the UFA. Such delay is controlled by `full_hierarchy_trigger_tau_nu_over_tau_k`.
 
-```python
-# Import modules
-from classy import Class
-import numpy as np
+## Using the code
 
-# Set usual CLASS parameters
-z_pk = 0.5
-cosmo = Class()
-cosmo.set({'A_s':2.089e-9,
-           'n_s':0.9649,
-           'tau_reio':0.052,
-           'omega_b':0.02237,
-           'omega_cdm':0.12,
-           'h':0.6736,
-           'YHe':0.2425,
-           'N_ur':2.0328,
-           'N_ncdm':1,
-           'm_ncdm':0.06,
-           'z_pk':z_pk
-          })  
-# Set additional CLASS-PT settings
-cosmo.set({'output':'mPk',
-           'non linear':'PT',
-           'IR resummation':'Yes',
-           'Bias tracers':'Yes',
-           'cb':'Yes', # use CDM+baryon spectra
-           'RSD':'Yes',
-           'AP':'Yes', # Alcock-Paczynski effect
-           'Omfid':'0.31', # fiducial Omega_m
-           'PNG':'No' # single-field inflation PNG
-         })
-cosmo.compute()
+Please cite [arXiv:2309.03941](https://arxiv.org/abs/2309.03941) if you make use of this code. 
 
-# Define some wavenumbers and compute spectra
-khvec = np.logspace(-3,np.log10(1),1000) # array of k in 1/Mpc
-cosmo.initialize_output(khvec, z_pk, len(khvec))
+## Default values
 
-# Define nuisance parameters and extract outputs
-b1, b2, bG2, bGamma3, cs0, cs2, cs4, Pshot, b4 = 2., -1., 0.1, -0.1, 0., 30., 0., 3000., 10.
-pk_g0 = cosmo.pk_gg_l0(b1, b2, bG2, bGamma3, cs0, Pshot, b4)
-pk_g2 = cosmo.pk_gg_l2(b1, b2, bG2, bGamma3, cs2, b4)
-pk_g4 = cosmo.pk_gg_l4(b1, b2, bG2, bGamma3, cs4, b4)
 ```
+  pba->log10_G_eff_nu=-12.;
+  pba->G_eff_nu=0.;
+  pba->interacting_nu=0.;
 
-You can also use the Mathematica notebook *'read_tables.nb'* to read the code output. We also provide a technical summary of the fNL implementations [here](https://github.com/Michalychforever/CLASS-PT/blob/master/notebooks/summary_orthogonal_github.ipynb).
+  ppr->start_small_k_at_tau_nu_over_tau_h = 2.e-5;
+  ppr->tight_coupling_trigger_tau_nu_over_tau_h=0.001;
+  ppr->tight_coupling_trigger_tau_nu_over_tau_k=0.001;
+  ppr->full_hierarchy_trigger_tau_nu_over_tau_k=1.e4;
 
-# Using the code
-
-You can use CLASS-PT freely, provided that in your publications you cite at least the code paper [arXiv:2004.10607](https://arxiv.org/abs/2004.10607). Feel free to cite the other companion papers devoted to new large-scale structure analysis methodologies! 
-
-# Authors
-- [Mikhail (Misha) Ivanov](mailto:ivanov@ias.edu)
-- Anton Chudaykin 
-- Marko Simonovic
-- Oliver Philcox
-- Giovanni Cabass
+  ```

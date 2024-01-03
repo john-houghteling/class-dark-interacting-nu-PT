@@ -761,6 +761,38 @@ int thermodynamics_init(
 
   pth->tau_free_streaming = tau;
 
+  /** - find z_star (when optical depth kappa crosses one, using linear
+      interpolation) and sound horizon at that time */
+
+  index_tau=0;
+  while ((pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_exp_m_kappa] > 1./_E_) && (index_tau < pth->tt_size))
+    index_tau++;
+
+  pth->z_star = pth->z_table[index_tau-1]+
+    (1./_E_-pth->thermodynamics_table[(index_tau-1)*pth->th_size+pth->index_th_exp_m_kappa])
+    /(pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_exp_m_kappa]-pth->thermodynamics_table[(index_tau-1)*pth->th_size+pth->index_th_exp_m_kappa])
+    *(pth->z_table[index_tau]-pth->z_table[index_tau-1]);
+
+  class_call(background_tau_of_z(pba,pth->z_star,&(pth->tau_star)),
+             pba->error_message,
+             pth->error_message);
+
+  class_call(background_at_tau(pba,pth->tau_star, pba->long_info, pba->inter_normal, &last_index_back, pvecback),
+             pba->error_message,
+             pth->error_message);
+
+  pth->rs_star=pvecback[pba->index_bg_rs];
+  pth->ds_star=pth->rs_star/(1.+pth->z_star);
+  pth->da_star=pvecback[pba->index_bg_ang_distance];
+  pth->ra_star=pth->da_star*(1.+pth->z_star);
+
+  if (pth->compute_damping_scale == _TRUE_) {
+
+    pth->rd_star = (pth->z_table[index_tau+1]-pth->z_star)/(pth->z_table[index_tau+1]-pth->z_table[index_tau])*pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_r_d]
+      +(pth->z_star-pth->z_table[index_tau])/(pth->z_table[index_tau+1]-pth->z_table[index_tau])*pth->thermodynamics_table[(index_tau+1)*pth->th_size+pth->index_th_r_d];
+
+  }
+
   /** - find baryon drag time (when tau_d crosses one, using linear
       interpolation) and sound horizon at that time */
 
