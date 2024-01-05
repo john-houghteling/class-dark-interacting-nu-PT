@@ -2,7 +2,7 @@
 
 ## Description 
 
-This is a modified version of the [CLASS-PT code](https://github.com/Michalychforever/CLASS-PT) that computes the cosmology for self-interacting neutrino models as presented in [arXiv:2309.03941](https://arxiv.org/abs/2309.03941). The novel interaction among neutrinos and its impact on cosmological phenomena is fully controlled by a single parameter: `log10_G_eff_nu`. Please note that this code should be solely using the synchronous gauge. For further details, see the following section. 
+This is a modified version of the [CLASS-PT code](https://github.com/Michalychforever/CLASS-PT) that computes the cosmology for self-interacting neutrino models as presented in [arXiv:2309.03941](https://arxiv.org/abs/2309.03941). The novel interaction among neutrinos and its impact on cosmological phenomena is fully controlled by a single parameter: `log10_G_eff_nu`. Please note that this code should be solely used in the synchronous gauge. For further details, see the following section. 
 
 ## Detailed implementation
 
