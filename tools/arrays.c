@@ -1690,10 +1690,12 @@ int array_interpolate_spline(
   inf=0;
   sup=n_lines-1;
 
+  //JH: lowering x slightly bc of rounding(?) errors at 17th digit causing x > x_max
+  x = x*0.9999999999;
     
   if (x_array[inf] < x_array[sup]){
 
-    if (x < x_array[inf]) {
+    if (x < x_array[inf]*0.9999999999) {
       sprintf(errmsg,"%s(L:%d) : x=%e < x_min=%e",__func__,__LINE__,x,x_array[inf]);
       return _FAILURE_;
     }

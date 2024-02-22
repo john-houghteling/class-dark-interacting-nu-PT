@@ -2437,7 +2437,6 @@ int input_read_parameters(
   // class_read_double("G_eff_nu",pba->G_eff_nu);
   class_read_double("log10_G_eff_nu",pba->log10_G_eff_nu);
 
-  // DC: Minimum threshold for LCDM limit. Excessively low values could produce numerical issues.
   if (pba->log10_G_eff_nu < -6.){
     pba->G_eff_nu=0.;
   }
@@ -3310,7 +3309,7 @@ int input_default_params(
   ppt->z_max_pk=0.;
 
   // DC: HERE!
-  pba->log10_G_eff_nu=-12.;
+  pba->log10_G_eff_nu=-7.;
   pba->G_eff_nu=0.;
   pba->interacting_nu=0.;
   ppt->ufa_corrections = 1;
