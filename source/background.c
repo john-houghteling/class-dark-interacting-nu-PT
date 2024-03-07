@@ -272,6 +272,15 @@ int background_functions(
   double a;
   /* scalar field quantities */
   double phi, phi_prime;
+  /* Temperature of non-interacting SM neutrinos */
+  double T_nu_0;
+  /* density of non-interacting SM neutrinos */
+  double rho_nu_0;
+  /* function that describes the energy transfer between dark sector and interacting neutrinos */
+  double q_dinu;
+  /* index for dinu interacting neutrino species */
+  int n_int;
+
 
   /** - initialize local variables */
   a = pvecback_B[pba->index_bi_a];
@@ -318,6 +327,37 @@ int background_functions(
     p_tot += 0.;
     rho_m += pvecback[pba->index_bg_rho_dcdm];
   }
+
+  // JMH: HERE.
+  // Calculating T_nu_0 and rho_nu_0, the values for unchanged SM neutrinos 
+  // also finding q(T_nu_0)
+  if (pba->has_dinu == _TRUE_){
+    T_nu_0 = 1.945/a_rel; //K
+    rho_nu_0 = 7*pow(_PI_,2)*pow(T_nu_0*8.617e-5,4)/120; //eV^4
+    q_dinu = pba->q_eq*(1-exp(-pow(pba->T_eq/T_nu_0,10/3)));
+    //printf("T_nu_0 in eV = %f\n",T_nu_0*8.617e-5);
+    //printf("T_nu_0^4 = %f\n",pow(T_nu_0,4));
+    //printf("rho_nu_0 = %f\n",rho_nu_0*(8.*_PI_*_G_/(3.*pow(_c_,2.))));
+    //printf("normal rho_nu = %f\n",pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4));
+    //printf("q = %f\n",q_dinu);
+
+    // Now compute rho_d and rho_nu_int
+    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu * (8.*_PI_*_G_/(3.*pow(_c_,2.))); // final part is just getting this into Class units
+    rho_tot += pvecback[pba->index_bg_rho_d];
+    p_tot += (1./3.)*pvecback[pba->index_bg_rho_d];
+    rho_r += pvecback[pba->index_bg_rho_d];
+    //printf("rho_d = %f\n",pvecback[pba->index_bg_rho_d]);
+
+    for(n_int=0; n_int<pba->N_int; n_int++){
+      pvecback[pba->index_bg_rho_nu_int+n_int] = pba->N_int*rho_nu_0*(1-q_dinu) * (8.*_PI_*_G_/(3.*pow(_c_,2.)));
+      rho_tot += pvecback[pba->index_bg_rho_nu_int+n_int];
+      p_tot += (1./3.)*pvecback[pba->index_bg_rho_nu_int+n_int];
+      rho_r += pvecback[pba->index_bg_rho_nu_int+n_int];
+    }
+  }
+
+
+
 
   /* dr */
   if (pba->has_dr == _TRUE_) {
@@ -784,6 +824,7 @@ int background_indices(
   pba->has_fld = _FALSE_;
   pba->has_ur = _FALSE_;
   pba->has_curvature = _FALSE_;
+  pba->has_dinu = _FALSE_;
 
   if (pba->Omega0_cdm != 0.)
     pba->has_cdm = _TRUE_;
@@ -811,6 +852,9 @@ int background_indices(
 
   if (pba->sgnK != 0)
     pba->has_curvature = _TRUE_;
+
+  if (pba->theta_mix_d_sm != 0.)
+    pba->has_dinu = _TRUE_;
 
   /** - initialize all indices */
 
@@ -877,6 +921,12 @@ int background_indices(
 
   /* - index for Omega_r (relativistic density fraction) */
   class_define_index(pba->index_bg_Omega_r,_TRUE_,index_bg,1);
+
+
+  //JMH: HERE
+  /* - index for rho_d and rho_d_int */
+  class_define_index(pba->index_bg_rho_d,pba->has_dinu,index_bg,1);
+  class_define_index(pba->index_bg_rho_nu_int,pba->has_dinu,index_bg,pba->N_int);
 
   /* - put here additional ingredients that you want to appear in the
      normal vector */
@@ -1553,6 +1603,7 @@ int background_solve(
   /* comoving radius coordinate in Mpc (equal to conformal distance in flat case) */
   double comoving_radius=0.;
 
+
   bpaw.pba = pba;
   class_alloc(pvecback,pba->bg_size*sizeof(double),pba->error_message);
   bpaw.pvecback = pvecback;
@@ -1586,8 +1637,18 @@ int background_solve(
   /* initialize the counter for the number of steps */
   pba->bt_size=0;
 
-  /** - loop over integration steps: call background_functions(), find step size, save data in growTable with gt_add(), perform one step with generic_integrator(), store new value of tau */
+  //JMH: HERE
+  // computing q_eq and T_eq before the loop since they'll be constant
+  if (pba->has_dinu==1){
+    pba->q_eq = 1./(1.+7.*pba->N_int/11);
+    //pba->T_eq = 0.77*pba->m_d_nu*pow(pba->theta_mix_d_sm*pba->theta_mix_d_sm*1.220932e28/pba->m_d_nu,0.2)/(pow(pba->q_eq,0.2)*pow(1-pba->q_eq,0.1));
+    pba->T_eq = pba->m_d_nu*pow(pow(sin(2*pba->theta_mix_d_sm),2.)*1.220932e28/pba->m_d_nu,0.2);
+    printf(" -> q_eq = %f\n",pba->q_eq);
+    printf(" -> T_eq = %f\n",pba->T_eq);
+    //printf("other T_eq method = %f\n",pba->m_d_nu*pow(pow(sin(2*pba->theta_mix_d_sm),2.)*1.220932e28/pba->m_d_nu,0.2));
+  }
 
+  /** - loop over integration steps: call background_functions(), find step size, save data in growTable with gt_add(), perform one step with generic_integrator(), store new value of tau */
   while (pvecback_integration[pba->index_bi_a] < pba->a_today) {
 
     tau_start = tau_end;
@@ -1719,6 +1780,7 @@ int background_solve(
     pvecback[pba->index_bg_lum_distance] = pba->a_today*comoving_radius*(1.+pba->z_table[i]);
     pvecback[pba->index_bg_rs] = pData[i*pba->bi_size+pba->index_bi_rs];
 
+
     /* -> compute all other quantities depending only on {B} variables.
        The value of {B} variables in pData are also copied to pvecback.*/
     class_call(background_functions(pba,pData+i*pba->bi_size, pba->long_info, pvecback),
@@ -1783,6 +1845,8 @@ int background_solve(
     if (pba->G_eff_nu !=0){
       printf(" -> interacting neutrinos with G_eff_nu = %g\n",pba->G_eff_nu);
     }
+    printf(" -> theta_0 = %f\n",pba->theta_mix_d_sm);
+    printf(" -> alpha_d = %f\n",pba->alpha_d);
     printf(" -> age = %f Gyr\n",pba->age);
     printf(" -> conformal age = %f Mpc\n",pba->conformal_age);
   }

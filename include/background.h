@@ -124,6 +124,16 @@ struct background
   double log10_G_eff_nu; /**< Log10 of the effective coupling constant for interaction of neutrinos*/
   double G_eff_nu; /**< Effective coupling constant for interaction of neutrinos*/
   double interacting_nu; /**< Define whether neutrinos are interacting or not*/
+  
+  // JMH: HERE
+  double theta_mix_d_sm; /**< mixing angle of SM and dark neutrinos */
+  double alpha_d; /**< interaction strength of dark neutrinos */
+  double m_d_nu; /**< mass of the dark neutrino in eV */
+  double N_int; /**< Number of SM neutrino species that are interacting with our dark neutrino */
+  short has_dinu; /**< Boolean that defines if we have dark interacting neutrinos */
+  double q_eq; /**< q value after dark sector and interacting neutrinos have reached equilibrium */
+  double T_eq; /**< Temperature at which our dark sector and interacting neutrinos reach equilibrium */
+
   //@}
 
   /** @name - related parameters */
@@ -186,6 +196,10 @@ struct background
   int index_bg_Gamma_ncdm1;   /**< Interaction rate of first ncdm species (others contiguous) */
 
   int index_bg_Omega_r;       /**< relativistic density fraction (\f$ \Omega_{\gamma} + \Omega_{\nu r} \f$) */
+
+  //JMH: HERE
+  int index_bg_rho_d;         /**< density of dinu dark sector */
+  int index_bg_rho_nu_int;    /**< density of dinu interacting neutrinos */
 
   /* end of vector in normal format, now quantities in long format */
 

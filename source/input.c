@@ -2433,6 +2433,21 @@ int input_read_parameters(
   }
   /* end of z_max section */
 
+  // JMH: HERE
+  class_read_double("theta_mix_d_sm",pba->theta_mix_d_sm);
+  class_read_double("alpha_d",pba->alpha_d);
+  class_read_double("m_d_nu",pba->m_d_nu);
+  class_read_double("N_int",pba->N_int);
+  // Should be done in background_indices
+  /*if (pba->alpha_d!=0){
+    pba->has_dinu=1;
+  }
+  else{
+    pba->has_dinu=0;
+  }*/
+
+
+
   // DC: HERE!
   // class_read_double("G_eff_nu",pba->G_eff_nu);
   class_read_double("log10_G_eff_nu",pba->log10_G_eff_nu);
@@ -3319,6 +3334,14 @@ int input_default_params(
   ppt->selection=gaussian;
   ppt->selection_mean[0]=1.;
   ppt->selection_width[0]=0.1;
+
+  // JMH: HERE
+  pba->theta_mix_d_sm=0.;
+  pba->alpha_d=0.;
+  pba->m_d_nu=0.;
+  pba->N_int=0.;
+  pba->q_eq=0.;
+  pba->T_eq=0.;
 
   /** - primordial structure */
 

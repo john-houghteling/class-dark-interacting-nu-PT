@@ -2,3 +2,6 @@ output/*
 build/*
 .DS_Store
 class_pt
+class
+MakeFile
+debugging/*

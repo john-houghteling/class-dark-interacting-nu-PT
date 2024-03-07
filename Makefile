@@ -50,7 +50,7 @@ LDFLAG = -g -fPIC
 HYREC = hyrec
 
 #put your path to libopenblas.a here
-OPENBLAS = /opt/homebrew/opt/openblas/lib/libopenblas.dylib
+OPENBLAS = /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblas.so.0
 
 ########################################################
 ###### IN PRINCIPLE THE REST SHOULD BE LEFT UNCHANGED ##
