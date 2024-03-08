@@ -334,11 +334,14 @@ int background_functions(
   if (pba->has_dinu == _TRUE_){
     T_nu_0 = 1.945/a_rel; //K
     rho_nu_0 = 7*pow(_PI_,2)*pow(T_nu_0*8.617e-5,4)/120; //eV^4
+    rho_nu_0 = (8*_PI_/3)*rho_nu_0*pow(_Mpc_over_m_*_eV_/(_h_P_*_c_),4)*(_G_*_h_P_/(pow(_c_,3)*pow(_Mpc_over_m_,2))); //now in Class units of 1/Mpc^2
     q_dinu = pba->q_eq*(1-exp(-pow(pba->T_eq/T_nu_0,10/3)));
-    //printf("T_nu_0 in eV = %f\n",T_nu_0*8.617e-5);
+    pvecback[pba->index_bg_rho_nu_0] = rho_nu_0;
+    //printf("T_nu_0 in K = %f\n",T_nu_0);
     //printf("T_nu_0^4 = %f\n",pow(T_nu_0,4));
-    //printf("rho_nu_0 = %f\n",rho_nu_0*(8.*_PI_*_G_/(3.*pow(_c_,2.))));
-    //printf("normal rho_nu = %f\n",pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4));
+    printf("     rho_nu_0 = %f\n",rho_nu_0);
+    printf("a = %f\n",a);
+    //printf("normal rho_nu = %f\n\n",pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4));
     //printf("q = %f\n",q_dinu);
 
     // Now compute rho_d and rho_nu_int
@@ -427,7 +430,7 @@ int background_functions(
       /* Interaction rate for massive neutrinos */
       if(pba->interacting_nu!=0.){
         // G_eff_nu in 1/MeV^2
-        // _Mpc_over_m*_eV_/(_h_P_*_c_) convert eV/Mpc
+        // _Mpc_over_m*_eV_/(_h_P_*_c_) convert eV to 1/Mpc
         // index_bg_Gamma_ncdm1 in 1/Mpc to make easy the comparison with H
         pvecback[pba->index_bg_Gamma_ncdm1+n_ncdm] = a_rel*pow(pba->G_eff_nu*1e-12,2)*pow(pba->T_cmb*pba->T_ncdm[n_ncdm]*_k_B_/_eV_/a_rel,5)*_Mpc_over_m_*_eV_/(_h_P_*_c_);
         // printf("%e\n",pvecback[pba->index_bg_Gamma_ncdm1+n_ncdm]*pow(a_rel,4));
@@ -927,6 +930,7 @@ int background_indices(
   /* - index for rho_d and rho_d_int */
   class_define_index(pba->index_bg_rho_d,pba->has_dinu,index_bg,1);
   class_define_index(pba->index_bg_rho_nu_int,pba->has_dinu,index_bg,pba->N_int);
+  class_define_index(pba->index_bg_rho_nu_0,pba->has_dinu,index_bg,1);
 
   /* - put here additional ingredients that you want to appear in the
      normal vector */
@@ -1645,7 +1649,6 @@ int background_solve(
     pba->T_eq = pba->m_d_nu*pow(pow(sin(2*pba->theta_mix_d_sm),2.)*1.220932e28/pba->m_d_nu,0.2);
     printf(" -> q_eq = %f\n",pba->q_eq);
     printf(" -> T_eq = %f\n",pba->T_eq);
-    //printf("other T_eq method = %f\n",pba->m_d_nu*pow(pow(sin(2*pba->theta_mix_d_sm),2.)*1.220932e28/pba->m_d_nu,0.2));
   }
 
   /** - loop over integration steps: call background_functions(), find step size, save data in growTable with gt_add(), perform one step with generic_integrator(), store new value of tau */
@@ -2104,12 +2107,12 @@ int background_output_titles(struct background * pba,
   char tmp[20];
 
   class_store_columntitle(titles,"z",_TRUE_);
-  class_store_columntitle(titles,"proper time [Gyr]",_TRUE_);
-  class_store_columntitle(titles,"conf. time [Mpc]",_TRUE_);
-  class_store_columntitle(titles,"H [1/Mpc]",_TRUE_);
-  class_store_columntitle(titles,"comov. dist.",_TRUE_);
+  class_store_columntitle(titles,"proper_time[Gyr]",_TRUE_);
+  class_store_columntitle(titles,"conf.time[Mpc]",_TRUE_);
+  class_store_columntitle(titles,"H[1/Mpc]",_TRUE_);
+  class_store_columntitle(titles,"comov.dist.",_TRUE_);
   class_store_columntitle(titles,"ang.diam.dist.",_TRUE_);
-  class_store_columntitle(titles,"lum. dist.",_TRUE_);
+  class_store_columntitle(titles,"lum.dist.",_TRUE_);
   class_store_columntitle(titles,"comov.snd.hrz.",_TRUE_);
   class_store_columntitle(titles,"(.)rho_g",_TRUE_);
   class_store_columntitle(titles,"(.)rho_b",_TRUE_);
@@ -2138,12 +2141,16 @@ int background_output_titles(struct background * pba,
   class_store_columntitle(titles,"V'_scf",pba->has_scf);
   class_store_columntitle(titles,"V''_scf",pba->has_scf);
 
-  class_store_columntitle(titles,"gr.fac. D",_TRUE_);
-  class_store_columntitle(titles,"gr.fac. f",_TRUE_);
+  class_store_columntitle(titles,"gr.fac.D",_TRUE_);
+  class_store_columntitle(titles,"gr.fac.f",_TRUE_);
 
   if (pba->interacting_nu!=0){
     class_store_columntitle(titles,"Gamma_ur",pba->has_ur);
     class_store_columntitle(titles,"Gamma_ncdm",pba->has_ncdm);
+  }
+
+  if (pba->has_dinu!=0){
+    class_store_columntitle(titles,"rho_nu_0",pba->has_dinu);
   }
 
   return _SUCCESS_;
@@ -2202,6 +2209,8 @@ int background_output_data(
       class_store_double(dataptr,pvecback[pba->index_bg_Gamma_ur],pba->has_ur,storeidx);
       class_store_double(dataptr,pvecback[pba->index_bg_Gamma_ncdm1],pba->has_ncdm,storeidx);
     }
+
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_nu_0],pba->has_dinu,storeidx);
 
   }
 

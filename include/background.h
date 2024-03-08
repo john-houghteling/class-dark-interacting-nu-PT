@@ -200,6 +200,7 @@ struct background
   //JMH: HERE
   int index_bg_rho_d;         /**< density of dinu dark sector */
   int index_bg_rho_nu_int;    /**< density of dinu interacting neutrinos */
+  int index_bg_rho_nu_0;      /**< density of single unchanged SM neutrino */
 
   /* end of vector in normal format, now quantities in long format */
 
