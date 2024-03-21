@@ -333,26 +333,26 @@ int background_functions(
   // also finding q(T_nu_0)
   if (pba->has_dinu == _TRUE_){
     T_nu_0 = 1.945/a_rel; //K
-    rho_nu_0 = 7*pow(_PI_,2)*pow(T_nu_0*8.617e-5,4)/120; //eV^4
-    rho_nu_0 = (8*_PI_/3)*rho_nu_0*pow(_Mpc_over_m_*_eV_/(_h_P_*_c_),4)*(_G_*_h_P_/(pow(_c_,3)*pow(_Mpc_over_m_,2))); //now in Class units of 1/Mpc^2
+    rho_nu_0 = 7*pow(_PI_,2.)*pow(T_nu_0*8.617e-5,4)/120; //eV^4
+    rho_nu_0 = (8*_PI_/3)*rho_nu_0*pow(_Mpc_over_m_*_eV_/(_h_P_*_c_),4.)*(_G_*_h_P_/(pow(_c_,3.)*pow(_Mpc_over_m_,2.))); //now in Class units of 1/Mpc^2
     q_dinu = pba->q_eq*(1-exp(-pow(pba->T_eq/T_nu_0,10/3)));
     pvecback[pba->index_bg_rho_nu_0] = rho_nu_0;
     //printf("T_nu_0 in K = %f\n",T_nu_0);
     //printf("T_nu_0^4 = %f\n",pow(T_nu_0,4));
-    printf("     rho_nu_0 = %f\n",rho_nu_0);
-    printf("a = %f\n",a);
+    //printf("     rho_nu_0 = %f\n",rho_nu_0);
+    //printf("a = %f\n",a);
     //printf("normal rho_nu = %f\n\n",pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4));
     //printf("q = %f\n",q_dinu);
 
     // Now compute rho_d and rho_nu_int
-    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu * (8.*_PI_*_G_/(3.*pow(_c_,2.))); // final part is just getting this into Class units
+    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu; // final part is just getting this into Class units
     rho_tot += pvecback[pba->index_bg_rho_d];
     p_tot += (1./3.)*pvecback[pba->index_bg_rho_d];
     rho_r += pvecback[pba->index_bg_rho_d];
     //printf("rho_d = %f\n",pvecback[pba->index_bg_rho_d]);
 
     for(n_int=0; n_int<pba->N_int; n_int++){
-      pvecback[pba->index_bg_rho_nu_int+n_int] = pba->N_int*rho_nu_0*(1-q_dinu) * (8.*_PI_*_G_/(3.*pow(_c_,2.)));
+      pvecback[pba->index_bg_rho_nu_int+n_int] = pba->N_int*rho_nu_0*(1-q_dinu);
       rho_tot += pvecback[pba->index_bg_rho_nu_int+n_int];
       p_tot += (1./3.)*pvecback[pba->index_bg_rho_nu_int+n_int];
       rho_r += pvecback[pba->index_bg_rho_nu_int+n_int];
@@ -1645,7 +1645,6 @@ int background_solve(
   // computing q_eq and T_eq before the loop since they'll be constant
   if (pba->has_dinu==1){
     pba->q_eq = 1./(1.+7.*pba->N_int/11);
-    //pba->T_eq = 0.77*pba->m_d_nu*pow(pba->theta_mix_d_sm*pba->theta_mix_d_sm*1.220932e28/pba->m_d_nu,0.2)/(pow(pba->q_eq,0.2)*pow(1-pba->q_eq,0.1));
     pba->T_eq = pba->m_d_nu*pow(pow(sin(2*pba->theta_mix_d_sm),2.)*1.220932e28/pba->m_d_nu,0.2);
     printf(" -> q_eq = %f\n",pba->q_eq);
     printf(" -> T_eq = %f\n",pba->T_eq);
@@ -2151,6 +2150,11 @@ int background_output_titles(struct background * pba,
 
   if (pba->has_dinu!=0){
     class_store_columntitle(titles,"rho_nu_0",pba->has_dinu);
+    class_store_columntitle(titles,"rho_nu_d",pba->has_dinu);
+    for (n=0; n<pba->N_int; n++){
+      sprintf(tmp,"rho_nu_int[%d]",n);
+      class_store_columntitle(titles,tmp,pba->has_dinu);
+    }
   }
 
   return _SUCCESS_;
@@ -2211,7 +2215,10 @@ int background_output_data(
     }
 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_nu_0],pba->has_dinu,storeidx);
-
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_d],pba->has_dinu,storeidx);
+    for (n=0; n<pba->N_int; n++){
+      class_store_double(dataptr,pvecback[pba->index_bg_rho_nu_int+n],pba->has_dinu,storeidx);
+    }
   }
 
   return _SUCCESS_;
