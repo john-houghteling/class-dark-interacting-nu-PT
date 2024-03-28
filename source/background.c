@@ -332,31 +332,26 @@ int background_functions(
   // Calculating T_nu_0 and rho_nu_0, the values for unchanged SM neutrinos 
   // also finding q(T_nu_0)
   if (pba->has_dinu == _TRUE_){
-    T_nu_0 = 1.945/a_rel; //K
-    rho_nu_0 = 7*pow(_PI_,2.)*pow(T_nu_0*8.617e-5,4)/120; //eV^4
-    rho_nu_0 = (8*_PI_/3)*rho_nu_0*pow(_Mpc_over_m_*_eV_/(_h_P_*_c_),4.)*(_G_*_h_P_/(pow(_c_,3.)*pow(_Mpc_over_m_,2.))); //now in Class units of 1/Mpc^2
+    T_nu_0 = (7.*powf(4./11.,4./3.)*3.045/8.)*pba->T_cmb/a_rel; //K
+    rho_nu_0 = (1./3.)*(7.*powf(4./11.,4./3.)*3.045/8.)*pvecback[pba->index_bg_rho_g]; //N_eff from PDG
+    //rho_nu_0 = (8*_PI_/3)*rho_nu_0*pow(_Mpc_over_m_*_eV_/(_h_P_*_c_),4.)*(_G_*_h_P_/(pow(_c_,3.)*pow(_Mpc_over_m_,2.))); //now in Class units of 1/Mpc^2
     q_dinu = pba->q_eq*(1-exp(-pow(pba->T_eq/T_nu_0,10/3)));
     pvecback[pba->index_bg_rho_nu_0] = rho_nu_0;
-    //printf("T_nu_0 in K = %f\n",T_nu_0);
-    //printf("T_nu_0^4 = %f\n",pow(T_nu_0,4));
-    //printf("     rho_nu_0 = %f\n",rho_nu_0);
-    //printf("a = %f\n",a);
-    //printf("normal rho_nu = %f\n\n",pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4));
-    //printf("q = %f\n",q_dinu);
+
 
     // Now compute rho_d and rho_nu_int
-    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu; // final part is just getting this into Class units
+    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu; 
     rho_tot += pvecback[pba->index_bg_rho_d];
     p_tot += (1./3.)*pvecback[pba->index_bg_rho_d];
     rho_r += pvecback[pba->index_bg_rho_d];
-    //printf("rho_d = %f\n",pvecback[pba->index_bg_rho_d]);
 
+    /* Using rho_ur instead
     for(n_int=0; n_int<pba->N_int; n_int++){
       pvecback[pba->index_bg_rho_nu_int+n_int] = pba->N_int*rho_nu_0*(1-q_dinu);
       rho_tot += pvecback[pba->index_bg_rho_nu_int+n_int];
       p_tot += (1./3.)*pvecback[pba->index_bg_rho_nu_int+n_int];
       rho_r += pvecback[pba->index_bg_rho_nu_int+n_int];
-    }
+    }*/
   }
 
 
@@ -463,12 +458,21 @@ int background_functions(
     p_tot += w_fld * pvecback[pba->index_bg_rho_fld];
   }
 
+  // JMH: HERE
+  // replacing realtivistic neutrinos with our interacting neutrinos for the sake of using their code in perturbations
+
   /* relativistic neutrinos (and all relativistic relics) */
   if (pba->has_ur == _TRUE_) {
-    pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4);
+    //pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4);
+    pvecback[pba->index_bg_rho_ur] = pba->N_int*rho_nu_0*(1-q_dinu);
+    rho_tot += pvecback[pba->index_bg_rho_ur];
+    p_tot += (1./3.)*pvecback[pba->index_bg_rho_ur];
+    rho_r += pvecback[pba->index_bg_rho_ur];
+    /*
     rho_tot += pvecback[pba->index_bg_rho_ur];
     p_tot += (1./3.) * pvecback[pba->index_bg_rho_ur];
     rho_r += pvecback[pba->index_bg_rho_ur];
+    */
 
     // DC: HERE!
     /* Interaction rate for massless neutrinos */
@@ -929,7 +933,6 @@ int background_indices(
   //JMH: HERE
   /* - index for rho_d and rho_d_int */
   class_define_index(pba->index_bg_rho_d,pba->has_dinu,index_bg,1);
-  class_define_index(pba->index_bg_rho_nu_int,pba->has_dinu,index_bg,pba->N_int);
   class_define_index(pba->index_bg_rho_nu_0,pba->has_dinu,index_bg,1);
 
   /* - put here additional ingredients that you want to appear in the
@@ -2151,10 +2154,6 @@ int background_output_titles(struct background * pba,
   if (pba->has_dinu!=0){
     class_store_columntitle(titles,"rho_nu_0",pba->has_dinu);
     class_store_columntitle(titles,"rho_nu_d",pba->has_dinu);
-    for (n=0; n<pba->N_int; n++){
-      sprintf(tmp,"rho_nu_int[%d]",n);
-      class_store_columntitle(titles,tmp,pba->has_dinu);
-    }
   }
 
   return _SUCCESS_;
@@ -2216,9 +2215,6 @@ int background_output_data(
 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_nu_0],pba->has_dinu,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_d],pba->has_dinu,storeidx);
-    for (n=0; n<pba->N_int; n++){
-      class_store_double(dataptr,pvecback[pba->index_bg_rho_nu_int+n],pba->has_dinu,storeidx);
-    }
   }
 
   return _SUCCESS_;

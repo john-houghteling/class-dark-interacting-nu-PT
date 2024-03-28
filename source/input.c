@@ -2437,7 +2437,9 @@ int input_read_parameters(
   class_read_double("theta_mix_d_sm",pba->theta_mix_d_sm);
   class_read_double("alpha_d",pba->alpha_d);
   class_read_double("m_d_nu",pba->m_d_nu);
-  class_read_double("N_int",pba->N_int);
+  // Locking N_int to 3 for the sake of simplicity
+  //class_read_double("N_int",pba->N_int);
+  pba->N_int = 3;
   // Should be done in background_indices
   /*if (pba->alpha_d!=0){
     pba->has_dinu=1;
