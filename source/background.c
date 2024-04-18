@@ -280,6 +280,10 @@ int background_functions(
   double q_dinu;
   /* index for dinu interacting neutrino species */
   int n_int;
+  /* parameter for the step in the dark sector energy density */
+  double x_ds;
+  /* step shape at each loop for the dark sector energy density */
+  double N_step;
 
 
   /** - initialize local variables */
@@ -338,9 +342,14 @@ int background_functions(
     q_dinu = pba->q_eq*(1-exp(-pow(pba->T_eq/T_nu_0,10/3)));
     pvecback[pba->index_bg_rho_nu_0] = rho_nu_0;
 
+    // compute step shape for when the dark neutrino decouples
+    x_ds = (pba->m_d_nu*_eV_/_k_B_)/(T_nu_0*pow((1.+8./7.)/(1.+(8./7.)/(1.+(pba->m_d_nu*_eV_/_k_B_)/T_nu_0)),1./3.));
+    N_step = 0.8097170277 - 0.2547044924/pow((1.+pow(1.960261687, -0.8454564724*(-1.107919495 + x_ds))),1.034796861) + 0.4448932751/pow(1.+pow(5.535224046, -0.4059089762*(-0.9662553675+x_ds)), 2.);
+    //N_step = (1 + 8./7.*(pow(x_ds,2.)*gsl_sf_bessel_Kn(2, x_ds)/2 + pow(x_ds,3.)*gsl_sf_bessel_Kn(1, x_ds)/6))/pow(1+8./7.*(pow(x_ds,2.)*gsl_sf_bessel_Kn(2, x_ds)/2 + pow(x_ds,3.)*gsl_sf_bessel_Kn(1, x_ds)/8),4./3.);
+
 
     // Now compute rho_d and rho_nu_int
-    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu; 
+    pvecback[pba->index_bg_rho_d] = pba->N_int*rho_nu_0*q_dinu*N_step; 
     rho_tot += pvecback[pba->index_bg_rho_d];
     p_tot += (1./3.)*pvecback[pba->index_bg_rho_d];
     rho_r += pvecback[pba->index_bg_rho_d];
@@ -2459,3 +2468,4 @@ double ddV_scf(
                double phi) {
   return ddV_e_scf(pba,phi)*V_p_scf(pba,phi) + 2*dV_e_scf(pba,phi)*dV_p_scf(pba,phi) + V_e_scf(pba,phi)*ddV_p_scf(pba,phi);
 }
+
