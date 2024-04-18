@@ -472,16 +472,16 @@ int background_functions(
 
   /* relativistic neutrinos (and all relativistic relics) */
   if (pba->has_ur == _TRUE_) {
-    //pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4);
-    pvecback[pba->index_bg_rho_ur] = pba->N_int*rho_nu_0*(1-q_dinu);
-    rho_tot += pvecback[pba->index_bg_rho_ur];
-    p_tot += (1./3.)*pvecback[pba->index_bg_rho_ur];
-    rho_r += pvecback[pba->index_bg_rho_ur];
-    /*
+    if (pba->has_dinu!=0.){
+      pvecback[pba->index_bg_rho_ur] = pba->N_int*rho_nu_0*(1-q_dinu);
+    }
+    else{
+      pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4);
+    }
     rho_tot += pvecback[pba->index_bg_rho_ur];
     p_tot += (1./3.) * pvecback[pba->index_bg_rho_ur];
     rho_r += pvecback[pba->index_bg_rho_ur];
-    */
+    
 
     // DC: HERE!
     /* Interaction rate for massless neutrinos */
