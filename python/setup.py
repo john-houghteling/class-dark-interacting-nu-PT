@@ -39,7 +39,7 @@ setup(
                            include_dirs=[nm.get_include(), "../include","/opt/homebrew/opt/openblas/include"],
                            libraries=liblist,
                            library_dirs=["../", GCCPATH],
-                           extra_link_args=['/opt/homebrew/opt/openblas/lib/libopenblas.dylib','-lgomp'],
+                           extra_link_args=['/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblas.so.0','-lgomp'],
                            )],
     #data_files=[('bbn', ['../bbn/sBBN.dat'])]
 )

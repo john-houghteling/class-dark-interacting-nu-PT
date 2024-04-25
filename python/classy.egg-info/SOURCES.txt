@@ -1,6 +1,5 @@
 .DS_Store
 README
-autosetup.py
 cclassy.pxd
 classy.pyx
 extract_errors.py

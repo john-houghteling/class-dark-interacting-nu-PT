@@ -2671,7 +2671,7 @@ int output_print_data(FILE *out,
   /** Summary*/
 
   /** - First we print the titles */
-  fprintf(out,"#");
+  fprintf(out,"");
 
   strcpy(thetitle,titles);
   pch = strtok(thetitle,_DELIMITER_);

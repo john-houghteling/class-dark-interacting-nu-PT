@@ -66,6 +66,11 @@ cdef extern from "class.h":
         double Omega0_ur
         double Omega0_dcdmdr
         double Omega0_scf
+        double theta_mix_d_sm
+        double alpha_d
+        double m_d_nu
+        double N_int
+        
 
         int bt_size
 
